@@ -23,16 +23,27 @@ export default function KalkulatorIdPage() {
   const router = useRouter();
 
   const [loaded, setLoaded]             = useState(false);
-  const [perhitungan, setPerhitungan]   = useState(null);  // master info
+  const [perhitungan, setPerhitungan]   = useState(null);
   const [allVersi, setAllVersi]         = useState([]);
-  const [activeVersi, setActiveVersi]   = useState(null);  // versi yang sedang ditampilkan
-  const [mode, setMode]                 = useState('hasil'); // 'hasil' | 'edit'
+  const [activeVersi, setActiveVersi]   = useState(null);
+  const [mode, setMode]                 = useState('hasil');
 
   // Form state (untuk mode edit)
-  const [param, setParam]       = useState(DEFAULT_PARAM);
-  const [pokok, setPokok]       = useState([]);
+  const [param, setParam]         = useState(DEFAULT_PARAM);
+  const [pokok, setPokok]         = useState([]);
   const [penunjang, setPenunjang] = useState([]);
-  const [step, setStep]         = useState('wkt');
+  const [step, setStep]           = useState('wkt');
+
+  // Responsive: track if we're on a narrow viewport
+  const [isNarrow, setIsNarrow] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 900px)');
+    setIsNarrow(mq.matches);
+    const handler = (e) => setIsNarrow(e.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
 
   async function load() {
     showLoader('Memuat perhitungan…');
@@ -76,7 +87,6 @@ export default function KalkulatorIdPage() {
     if (!pokok.length || pokok.some(p => !p.kegiatan || !p.norma_waktu)) {
       toast('Lengkapi semua kegiatan tugas pokok.', 'error'); return;
     }
-    // Kalkulasi di frontend
     const result = runHitung(param, pokok, penunjang);
     if (!result.ok) { toast(result.error, 'error'); return; }
 
@@ -90,7 +100,7 @@ export default function KalkulatorIdPage() {
 
     if (res.ok) {
       toast(`Versi ${res.versi_num} berhasil disimpan!`, 'success');
-      await load();  // reload untuk dapat versi terbaru
+      await load();
     } else {
       toast(res.error, 'error');
     }
@@ -102,63 +112,85 @@ export default function KalkulatorIdPage() {
   const latestVersi = allVersi[allVersi.length - 1];
   const isLatest = activeVersi?.id === latestVersi?.id;
 
-  return (
-    <div style={{ display:'grid', gridTemplateColumns:'1fr 240px', gap:'1.5rem', alignItems:'start' }}>
-      {/* ── Konten utama ── */}
-      <div style={{ minWidth:0 }}>
-        {mode === 'hasil' && activeVersi?.hasil ? (
-          <HasilView
-            judul={perhitungan?.judul}
-            hasil={activeVersi.hasil}
-            versiNum={activeVersi.versi_num}
-            penulis={activeVersi.username}
-            savedAt={activeVersi.saved_at}
-            isLatest={isLatest}
-            onEdit={isLatest ? startEdit : null}
-            onNewVersi={!isLatest ? startEdit : null}
-            onDashboard={() => router.push('/dashboard')}
-          />
-        ) : (
-          <>
-            <div className="view-header">
-              <div className="eyebrow">{activeVersi ? `Modifikasi dari Versi ${activeVersi.versi_num}` : 'Edit Perhitungan'}</div>
-              <div className="view-title">{perhitungan?.judul}</div>
-              <div className="view-desc">
-                {perhitungan?.unit_kerja}{perhitungan?.tahun ? ` · Tahun ${perhitungan.tahun}` : ''}
-                {' · '}Versi baru oleh <strong>{currentUser?.username}</strong>
-              </div>
+  const mainContent = (
+    <div style={{ minWidth: 0 }}>
+      {mode === 'hasil' && activeVersi?.hasil ? (
+        <HasilView
+          judul={perhitungan?.judul}
+          hasil={activeVersi.hasil}
+          versiNum={activeVersi.versi_num}
+          penulis={activeVersi.username}
+          savedAt={activeVersi.saved_at}
+          isLatest={isLatest}
+          onEdit={isLatest ? startEdit : null}
+          onNewVersi={!isLatest ? startEdit : null}
+          onDashboard={() => router.push('/dashboard')}
+        />
+      ) : (
+        <>
+          <div className="view-header">
+            <div className="eyebrow">{activeVersi ? `Modifikasi dari Versi ${activeVersi.versi_num}` : 'Edit Perhitungan'}</div>
+            <div className="view-title">{perhitungan?.judul}</div>
+            <div className="view-desc">
+              {perhitungan?.unit_kerja}{perhitungan?.tahun ? ` · Tahun ${perhitungan.tahun}` : ''}
+              {' · '}Versi baru oleh <strong>{currentUser?.username}</strong>
             </div>
+          </div>
 
-            <div className="steps-nav">
-              {STEPS.map((s, i) => (
-                <button key={s} className={`step-btn${step === s ? ' active' : ''}`} onClick={() => setStep(s)}>
-                  {i < stepIndex && <span className="step-check">✓</span>}
-                  <span className="step-num">{String(i+1).padStart(2,'0')}</span>
-                  <span className="step-label">{STEP_LABELS[i]}</span>
-                </button>
-              ))}
-            </div>
+          <div className="steps-nav">
+            {STEPS.map((s, i) => (
+              <button key={s} className={`step-btn${step === s ? ' active' : ''}`} onClick={() => setStep(s)}>
+                {i < stepIndex && <span className="step-check">✓</span>}
+                <span className="step-num">{String(i+1).padStart(2,'0')}</span>
+                <span className="step-label">{STEP_LABELS[i]}</span>
+              </button>
+            ))}
+          </div>
 
-            {step === 'wkt'       && <StepWKT param={param} setParam={setParam} onNext={() => setStep('pokok')} onBack={() => setMode('hasil')} />}
-            {step === 'pokok'     && <StepPokok pokok={pokok} setPokok={setPokok} onNext={() => setStep('penunjang')} onBack={() => setStep('wkt')} />}
-            {step === 'penunjang' && <StepPenunjang penunjang={penunjang} setPenunjang={setPenunjang} param={param} onNext={() => setStep('review')} onBack={() => setStep('pokok')} />}
-            {step === 'review'    && (
-              <StepReview param={param} pokok={pokok} penunjang={penunjang}
-                onBack={() => setStep('penunjang')} onHitung={doHitungDanSimpan}
-                isNew={false}
-              />
-            )}
-          </>
-        )}
+          {step === 'wkt'       && <StepWKT param={param} setParam={setParam} onNext={() => setStep('pokok')} onBack={() => setMode('hasil')} />}
+          {step === 'pokok'     && <StepPokok pokok={pokok} setPokok={setPokok} onNext={() => setStep('penunjang')} onBack={() => setStep('wkt')} />}
+          {step === 'penunjang' && <StepPenunjang penunjang={penunjang} setPenunjang={setPenunjang} param={param} onNext={() => setStep('review')} onBack={() => setStep('pokok')} />}
+          {step === 'review'    && (
+            <StepReview param={param} pokok={pokok} penunjang={penunjang}
+              onBack={() => setStep('penunjang')} onHitung={doHitungDanSimpan}
+              isNew={false}
+            />
+          )}
+        </>
+      )}
+    </div>
+  );
+
+  const sidebar = (
+    <VersiSidebar
+      versi={allVersi}
+      activeId={activeVersi?.id}
+      perhitungan={perhitungan}
+      onSelect={selectVersi}
+    />
+  );
+
+  // ── Narrow layout: versi sidebar on top, content below ──
+  if (isNarrow) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+        {/* Riwayat versi di atas — tanpa sticky, full-width */}
+        <div className="versi-aside" style={{ position: 'static' }}>
+          {sidebar}
+        </div>
+        {/* Konten utama di bawah */}
+        {mainContent}
       </div>
+    );
+  }
 
-      {/* ── Version sidebar ── */}
-      <VersiSidebar
-        versi={allVersi}
-        activeId={activeVersi?.id}
-        perhitungan={perhitungan}
-        onSelect={selectVersi}
-      />
+  // ── Wide layout: original side-by-side grid ──
+  return (
+    <div className="kalkulator-grid">
+      {mainContent}
+      <div className="versi-aside">
+        {sidebar}
+      </div>
     </div>
   );
 }
