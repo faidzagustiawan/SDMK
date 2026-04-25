@@ -94,12 +94,7 @@ export default function ProfilPage() {
         </div>
         
         
-        <div className="detail-item">
-          <span>Bergabung:</span> {profile.created_at ? new Date(profile.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
-        </div>
-        <div className="detail-item">
-          <span>Login Terakhir:</span> {profile.last_login ? new Date(profile.last_login).toLocaleString('id-ID') : '—'}
-        </div>
+        
       </div>
     </div>
   </div>
