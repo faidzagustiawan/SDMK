@@ -13,15 +13,14 @@ export default function ProfilPage() {
 
   const [profile, setProfile]   = useState(null);
   const [stats, setStats]       = useState({ total:0, selesai:0, draft:0 });
-  const [units, setUnits]       = useState([]);
+  
   const [showEdit, setShowEdit] = useState(false);
   const [showPw, setShowPw]     = useState(false);
 
   const [peName, setPeName]     = useState('');
   const [peEmail, setPeEmail]   = useState('');
-  const [peUnit, setPeUnit]     = useState('');
-  const [peSub, setPeSub]       = useState('');
 
+  
   const [cpOld, setCpOld]       = useState('');
   const [cpNew, setCpNew]       = useState('');
   const [cpConf, setCpConf]     = useState('');
@@ -31,13 +30,13 @@ export default function ProfilPage() {
     const [profRes, listRes, unitRes] = await Promise.all([
       api({ action:'getProfile' }),
       api({ action:'listPerhitungan' }),
-      api({ action:'listUnits' }),
+      
     ]);
     hideLoader();
     if (!profRes.ok) { toast(profRes.error,'error'); return; }
     const u = profRes.profile;
-    setProfile(u); setPeName(u.name||''); setPeEmail(u.email||''); setPeUnit(u.unit_id||''); setPeSub(u.sub_unit_id||'');
-    if (unitRes.ok) setUnits(unitRes.data);
+    setProfile(u); setPeName(u.name||''); setPeEmail(u.email||'');  
+    
     if (listRes.ok) {
       const all = listRes.data;
       setStats({ total:all.length, selesai:all.filter(x=>x.hasil).length, draft:all.filter(x=>!x.hasil).length });
@@ -50,9 +49,9 @@ export default function ProfilPage() {
 
   async function submitEdit() {
     showLoader('Menyimpan profil…');
-    const res = await api({ action:'updateProfile', name:peName, email:peEmail, unit_id:peUnit, sub_unit_id:peSub });
+    const res = await api({ action:'updateProfile', name:peName, email:peEmail });
     hideLoader();
-    if (res.ok) { setShowEdit(false); updateUser({ name:peName, unit_id:peUnit, sub_unit_id:peSub }); toast('Profil berhasil diperbarui.','success'); load(); }
+    if (res.ok) { setShowEdit(false); updateUser({ name:peName }); toast('Profil berhasil diperbarui.','success'); load(); }
     else toast(res.error,'error');
   }
 
@@ -96,11 +95,7 @@ export default function ProfilPage() {
         <div className="detail-item">
           <span>Unit Kerja:</span> {unitLabel(profile.unit_id)}
         </div>
-        {profile.sub_unit_id && (
-          <div className="detail-item">
-            <span>Sub Unit:</span> {unitLabel(profile.sub_unit_id)}
-          </div>
-        )}
+        
         <div className="detail-item">
           <span>Bergabung:</span> {profile.created_at ? new Date(profile.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
         </div>
