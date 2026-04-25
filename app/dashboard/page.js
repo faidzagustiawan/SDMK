@@ -14,17 +14,17 @@ export default function DashboardPage() {
 
   const [allData, setAllData]         = useState([]);
   const [filtered, setFiltered]       = useState([]);
-  const [units, setUnits]             = useState([]);
+  
   const [search, setSearch]           = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const load = useCallback(async () => {
     showLoader('Memuat data…');
-    const [dRes, uRes] = await Promise.all([ api({ action:'listPerhitungan' }), api({ action:'listUnits' }) ]);
+    const [dRes] = await Promise.all([ api({ action:'listPerhitungan' });
     hideLoader();
     if (dRes.ok) { setAllData(dRes.data); setFiltered(dRes.data); }
     else toast(dRes.error,'error');
-    if (uRes.ok) setUnits(uRes.data);
+    
   }, []);
 
   useEffect(() => { load(); }, [load]);
@@ -33,13 +33,12 @@ export default function DashboardPage() {
     const q = search.toLowerCase();
     setFiltered(allData.filter(p =>
       (p.judul||'').toLowerCase().includes(q) ||
-      unitLabel(p.unit_id).toLowerCase().includes(q) ||
+      
       (p.created_by_name||'').toLowerCase().includes(q)
     ));
-  }, [search, allData, units]);
+  }, [search, allData]);
 
-  function unitLabel(id) { return units.find(u => u.id === id)?.name || ''; }
-  function subLabel(id)  { return id ? units.find(u => u.id === id)?.name || '' : ''; }
+  
   function fmtDate(s)    { return s ? new Date(s).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '—'; }
   const isOwner = (p) => p.created_by_id === currentUser?.id || currentUser?.role === 'admin';
 
@@ -80,9 +79,7 @@ export default function DashboardPage() {
       ) : (
         <div className="perhit-list">
           {filtered.map(p => {
-            const ul = unitLabel(p.unit_id);
-            const sl = subLabel(p.sub_unit_id);
-            const unitDisplay = [ul, sl].filter(Boolean).join(' › ');
+            
             return (
               <div key={p.id} className="perhit-row" onClick={()=>router.push(`/kalkulator/${p.id}`)}>
                 <div style={{flex:1,minWidth:0}}>
