@@ -5,7 +5,7 @@ import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 import { Modal } from '@/components/ui/Modal';
-import { UnitSelect } from '@/components/ui/UnitSelect';
+
 
 export default function ProfilPage() {
   const { showLoader, hideLoader, toast } = useApp();
