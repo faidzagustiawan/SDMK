@@ -17,7 +17,7 @@ function SidebarContent({ onClose }) {
   ];
   const adminItems = [
     { label: 'Kelola Pengguna', icon: '👥', href: '/admin/users', exact: false },
-    { label: 'Kelola Unit', icon: '🏢', href: '/admin/units', exact: false },
+    
   ];
 
   function nav(href) { router.push(href); onClose?.(); }
