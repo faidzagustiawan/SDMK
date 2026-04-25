@@ -12,45 +12,74 @@ export default function DashboardPage() {
   const { currentUser } = useAuth();
   const router = useRouter();
 
-  const [allData, setAllData]         = useState([]);
-  const [filtered, setFiltered]       = useState([]);
-  
-  const [search, setSearch]           = useState('');
+  const [allData, setAllData] = useState([]);
+  const [filtered, setFiltered] = useState([]);
+
+  const [search, setSearch] = useState('');
   const [deleteTarget, setDeleteTarget] = useState(null);
 
   const load = useCallback(async () => {
     showLoader('Memuat data…');
-    const [dRes] = await Promise.all([ api({ action:'listPerhitungan' }),
-    hideLoader();
-    if (dRes.ok) { setAllData(dRes.data); setFiltered(dRes.data); }
-    else toast(dRes.error,'error');
-    
-  }, []);
 
-  useEffect(() => { load(); }, [load]);
+    const dRes = await api({ action: 'listPerhitungan' });
+
+    hideLoader();
+
+    if (dRes.ok) {
+      setAllData(dRes.data);
+      setFiltered(dRes.data);
+    } else {
+      toast(dRes.error, 'error');
+    }
+  }, [showLoader, hideLoader, toast]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
 
   useEffect(() => {
     const q = search.toLowerCase();
-    setFiltered(allData.filter(p =>
-      (p.judul||'').toLowerCase().includes(q) ||
-      
-      (p.created_by_name||'').toLowerCase().includes(q)
-    ));
+
+    setFiltered(
+      allData.filter((p) =>
+        (p.judul || '').toLowerCase().includes(q) ||
+        (p.created_by_name || '').toLowerCase().includes(q)
+      )
+    );
   }, [search, allData]);
 
-  
-  function fmtDate(s)    { return s ? new Date(s).toLocaleDateString('id-ID',{day:'2-digit',month:'short',year:'numeric'}) : '—'; }
-  const isOwner = (p) => p.created_by_id === currentUser?.id || currentUser?.role === 'admin';
+  function fmtDate(s) {
+    return s
+      ? new Date(s).toLocaleDateString('id-ID', {
+          day: '2-digit',
+          month: 'short',
+          year: 'numeric',
+        })
+      : '—';
+  }
+
+  const isOwner = (p) =>
+    p.created_by_id === currentUser?.id || currentUser?.role === 'admin';
 
   async function doDelete() {
     if (!deleteTarget) return;
+
     const { id } = deleteTarget;
+
     setDeleteTarget(null);
+
     showLoader('Menghapus…');
-    const res = await api({ action:'deletePerhitungan', id });
+
+    const res = await api({ action: 'deletePerhitungan', id });
+
     hideLoader();
-    if (res.ok) { toast('Perhitungan dihapus.','success'); load(); }
-    else toast(res.error,'error');
+
+    if (res.ok) {
+      toast('Perhitungan dihapus.', 'success');
+      load();
+    } else {
+      toast(res.error, 'error');
+    }
   }
 
   return (
@@ -58,62 +87,149 @@ export default function DashboardPage() {
       <div className="view-header">
         <div className="eyebrow">Beranda</div>
         <div className="view-title">Semua Perhitungan</div>
-        <div className="view-desc">Semua perhitungan dapat dilihat dan dimodifikasi oleh seluruh pengguna.</div>
+        <div className="view-desc">
+          Semua perhitungan dapat dilihat dan dimodifikasi oleh seluruh pengguna.
+        </div>
       </div>
 
       <div className="dash-actions">
         <div className="dash-search">
-          <span style={{color:'var(--ink-m)',fontSize:14}}>🔍</span>
-          <input type="text" placeholder="Cari judul, unit, atau pembuat…" value={search} onChange={e=>setSearch(e.target.value)} />
+          <span style={{ color: 'var(--ink-m)', fontSize: 14 }}>🔍</span>
+          <input
+            type="text"
+            placeholder="Cari judul atau pembuat…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-        <button className="btn btn-primary" onClick={() => router.push('/kalkulator/baru')}>＋ Perhitungan Baru</button>
+
+        <button
+          className="btn btn-primary"
+          onClick={() => router.push('/kalkulator/baru')}
+        >
+          ＋ Perhitungan Baru
+        </button>
       </div>
 
       {filtered.length === 0 ? (
         <div className="empty-state">
           <div className="empty-icon">📋</div>
-          <div className="empty-title">{search ? 'Tidak ada hasil' : 'Belum ada perhitungan'}</div>
-          <div className="empty-desc" style={{marginBottom:'1rem'}}>{search ? 'Coba kata kunci lain.' : 'Mulai perhitungan pertama.'}</div>
-          {!search && <button className="btn btn-primary" onClick={()=>router.push('/kalkulator/baru')}>＋ Perhitungan Baru</button>}
+
+          <div className="empty-title">
+            {search ? 'Tidak ada hasil' : 'Belum ada perhitungan'}
+          </div>
+
+          <div className="empty-desc" style={{ marginBottom: '1rem' }}>
+            {search
+              ? 'Coba kata kunci lain.'
+              : 'Mulai perhitungan pertama.'}
+          </div>
+
+          {!search && (
+            <button
+              className="btn btn-primary"
+              onClick={() => router.push('/kalkulator/baru')}
+            >
+              ＋ Perhitungan Baru
+            </button>
+          )}
         </div>
       ) : (
         <div className="perhit-list">
-          {filtered.map(p => {
-            
+          {filtered.map((p) => {
             return (
-              <div key={p.id} className="perhit-row" onClick={()=>router.push(`/kalkulator/${p.id}`)}>
-                <div style={{flex:1,minWidth:0}}>
+              <div
+                key={p.id}
+                className="perhit-row"
+                onClick={() => router.push(`/kalkulator/${p.id}`)}
+              >
+                <div style={{ flex: 1, minWidth: 0 }}>
                   <div className="perhit-title">{p.judul}</div>
+
                   <div className="perhit-meta">
-                    {unitDisplay && <><span style={{fontWeight:500}}>{unitDisplay}</span><span>·</span></>}
-                    <span>{p.tahun||'—'}</span>
+                    <span>{p.tahun || '—'}</span>
+
                     <span>·</span>
-                    <span style={{display:'flex',alignItems:'center',gap:4}}>
-                      <span style={{background:'var(--teal-p)',color:'var(--teal)',borderRadius:99,padding:'1px 7px',fontSize:11,fontWeight:600}}>
-                        {p.created_by_name||'—'}
+
+                    <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                      <span
+                        style={{
+                          background: 'var(--teal-p)',
+                          color: 'var(--teal)',
+                          borderRadius: 99,
+                          padding: '1px 7px',
+                          fontSize: 11,
+                          fontWeight: 600,
+                        }}
+                      >
+                        {p.created_by_name || '—'}
                       </span>
+
                       <span>{fmtDate(p.created_at)}</span>
                     </span>
-                    {p.versi_count > 1 && <>
-                      <span>·</span>
-                      <span style={{display:'flex',alignItems:'center',gap:4}}>
-                        <span style={{background:'var(--amber-p)',color:'var(--amber)',borderRadius:99,padding:'1px 7px',fontSize:11,fontWeight:600}}>
-                          v{p.versi_count} {p.last_modified_by}
+
+                    {p.versi_count > 1 && (
+                      <>
+                        <span>·</span>
+
+                        <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                          <span
+                            style={{
+                              background: 'var(--amber-p)',
+                              color: 'var(--amber)',
+                              borderRadius: 99,
+                              padding: '1px 7px',
+                              fontSize: 11,
+                              fontWeight: 600,
+                            }}
+                          >
+                            v{p.versi_count} {p.last_modified_by}
+                          </span>
+
+                          <span>{fmtDate(p.last_modified_at)}</span>
                         </span>
-                        <span>{fmtDate(p.last_modified_at)}</span>
-                      </span>
-                    </>}
+                      </>
+                    )}
                   </div>
                 </div>
-                <div style={{display:'flex',alignItems:'center',gap:10}}>
+
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                   <div className="perhit-sdmk">
-                    {p.hasil
-                      ? <><div className="perhit-sdmk-num">{p.hasil.total_sdmk}</div><div className="perhit-sdmk-label">Orang SDMK</div></>
-                      : <div style={{fontSize:12,color:'var(--ink-m)'}}>Belum dihitung</div>}
+                    {p.hasil ? (
+                      <>
+                        <div className="perhit-sdmk-num">
+                          {p.hasil?.total_sdmk}
+                        </div>
+                        <div className="perhit-sdmk-label">Orang SDMK</div>
+                      </>
+                    ) : (
+                      <div style={{ fontSize: 12, color: 'var(--ink-m)' }}>
+                        Belum dihitung
+                      </div>
+                    )}
                   </div>
-                  <div style={{display:'flex',gap:6}} onClick={e=>e.stopPropagation()}>
-                    <button className="btn-icon edit" onClick={()=>router.push(`/kalkulator/${p.id}`)}>✏️</button>
-                    {isOwner(p) && <button className="btn-icon" onClick={()=>setDeleteTarget({id:p.id,judul:p.judul})}>🗑</button>}
+
+                  <div
+                    style={{ display: 'flex', gap: 6 }}
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <button
+                      className="btn-icon edit"
+                      onClick={() => router.push(`/kalkulator/${p.id}`)}
+                    >
+                      ✏️
+                    </button>
+
+                    {isOwner(p) && (
+                      <button
+                        className="btn-icon"
+                        onClick={() =>
+                          setDeleteTarget({ id: p.id, judul: p.judul })
+                        }
+                      >
+                        🗑
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -123,11 +239,29 @@ export default function DashboardPage() {
       )}
 
       {deleteTarget && (
-        <Modal title="Hapus Perhitungan" subtitle={`Hapus "${deleteTarget.judul}"? Semua versi akan terhapus.`}
-          onClose={()=>setDeleteTarget(null)}
-          actions={<><button className="btn btn-secondary btn-sm" onClick={()=>setDeleteTarget(null)}>Batal</button><button className="btn btn-danger btn-sm" onClick={doDelete}>Ya, Hapus</button></>}
+        <Modal
+          title="Hapus Perhitungan"
+          subtitle={`Hapus "${deleteTarget.judul}"? Semua versi akan terhapus.`}
+          onClose={() => setDeleteTarget(null)}
+          actions={
+            <>
+              <button
+                className="btn btn-secondary btn-sm"
+                onClick={() => setDeleteTarget(null)}
+              >
+                Batal
+              </button>
+
+              <button
+                className="btn btn-danger btn-sm"
+                onClick={doDelete}
+              >
+                Ya, Hapus
+              </button>
+            </>
+          }
         />
       )}
     </>
   );
-}
+        }
