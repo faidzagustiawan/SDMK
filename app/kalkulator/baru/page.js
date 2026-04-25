@@ -7,7 +7,7 @@ import { useApp } from '@/contexts/AppContext';
 import { api } from '@/lib/api';
 import { DEFAULT_PARAM, runHitung } from '@/lib/sdmk-engine';
 import { Modal } from '@/components/ui/Modal';
-import { UnitSelect } from '@/components/ui/UnitSelect';
+
 import { StepWKT } from '@/components/kalkulator/StepWKT';
 import { StepPokok } from '@/components/kalkulator/StepPokok';
 import { StepPenunjang } from '@/components/kalkulator/StepPenunjang';
@@ -22,13 +22,12 @@ export default function KalkulatorBaruPage() {
   const { showLoader, hideLoader, toast } = useApp();
   const router = useRouter();
 
-  const [units, setUnits]         = useState([]);
+  
   const [showJudul, setShowJudul] = useState(true);
 
   // Modal fields
   const [fJudul, setFJudul]   = useState('');
-  const [fUnit, setFUnit]     = useState(currentUser?.unit_id || '');
-  const [fSub, setFSub]       = useState(currentUser?.sub_unit_id || '');
+  
   const [fTahun, setFTahun]   = useState(String(new Date().getFullYear()));
 
   const [meta, setMeta]               = useState(null);
@@ -38,15 +37,12 @@ export default function KalkulatorBaruPage() {
   const [step, setStep]               = useState('wkt');
   const [hasil, setHasil]             = useState(null);
 
-  useEffect(() => {
-    api({ action:'listUnits' }).then(r => { if (r.ok) setUnits(r.data); });
-  }, []);
+  
 
-  function unitLabel(id) { return units.find(u => u.id === id)?.name || '—'; }
-
+  
   function submitJudul() {
     if (!fJudul.trim()) { toast('Judul wajib diisi.','error'); return; }
-    setMeta({ judul:fJudul.trim(), unit_id:fUnit, sub_unit_id:fSub, tahun:fTahun });
+    setMeta({ judul:fJudul.trim(),  tahun:fTahun });
     setShowJudul(false);
   }
 
@@ -57,7 +53,7 @@ export default function KalkulatorBaruPage() {
     const result = runHitung(param, pokok, penunjang);
     if (!result.ok) { toast(result.error,'error'); return; }
     showLoader('Menyimpan ke server…');
-    const res = await api({ action:'createPerhitungan', judul:meta.judul, unit_id:meta.unit_id, sub_unit_id:meta.sub_unit_id, tahun:meta.tahun, param, pokok, penunjang, hasil:result.hasil });
+    const res = await api({ action:'createPerhitungan', judul:meta.judul, tahun:meta.tahun, param, pokok, penunjang, hasil:result.hasil });
     hideLoader();
     if (res.ok) { setHasil(result.hasil); toast('Perhitungan berhasil disimpan!','success'); }
     else toast(res.error,'error');
@@ -80,7 +76,7 @@ export default function KalkulatorBaruPage() {
         >
           <div className="field"><label>Judul Perhitungan *</label>
             <input type="text" placeholder="cth. Analisis Tenaga Dokter 2025" value={fJudul} onChange={e=>setFJudul(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submitJudul()} autoFocus /></div>
-          <UnitSelect units={units} unitId={fUnit} subUnitId={fSub} onChangeUnit={setFUnit} onChangeSubUnit={setFSub} />
+          
           <div className="field"><label>Tahun</label>
             <input type="number" value={fTahun} onChange={e=>setFTahun(e.target.value)} /></div>
         </Modal>
@@ -91,7 +87,7 @@ export default function KalkulatorBaruPage() {
           <div className="eyebrow">Perhitungan Baru</div>
           <div className="view-title">{meta?.judul}</div>
           <div className="view-desc">
-            {unitLabel(meta?.unit_id)}{meta?.sub_unit_id ? ` › ${unitLabel(meta.sub_unit_id)}` : ''}
+            
             {meta?.tahun ? ` · Tahun ${meta.tahun}` : ''}
           </div>
         </div>
