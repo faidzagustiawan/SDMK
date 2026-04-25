@@ -20,7 +20,7 @@ export default function DashboardPage() {
 
   const load = useCallback(async () => {
     showLoader('Memuat data…');
-    const [dRes] = await Promise.all([ api({ action:'listPerhitungan' });
+    const [dRes] = await Promise.all([ api({ action:'listPerhitungan' }),
     hideLoader();
     if (dRes.ok) { setAllData(dRes.data); setFiltered(dRes.data); }
     else toast(dRes.error,'error');
