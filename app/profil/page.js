@@ -92,9 +92,7 @@ export default function ProfilPage() {
         <div className="detail-item">
           <span>Email:</span> {profile.email || '—'}
         </div>
-        <div className="detail-item">
-          <span>Unit Kerja:</span> {unitLabel(profile.unit_id)}
-        </div>
+        
         
         <div className="detail-item">
           <span>Bergabung:</span> {profile.created_at ? new Date(profile.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' }) : '—'}
@@ -135,7 +133,7 @@ export default function ProfilPage() {
         >
           <div className="field"><label>Nama Lengkap</label><input type="text" value={peName} onChange={e=>setPeName(e.target.value)} /></div>
           <div className="field"><label>Email</label><input type="email" value={peEmail} onChange={e=>setPeEmail(e.target.value)} /></div>
-          <UnitSelect units={units} unitId={peUnit} subUnitId={peSub} onChangeUnit={setPeUnit} onChangeSubUnit={setPeSub} />
+          
         </Modal>
       )}
 
