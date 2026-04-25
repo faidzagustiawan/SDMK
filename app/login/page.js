@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import { useAuth } from "@/hooks/useAuth";
 import { useApp } from "@/contexts/AppContext";
 import { api } from "@/lib/api";
-import { UnitSelect } from "@/components/ui/UnitSelect";
+
 
 export default function LoginPage() {
   const EyeOffIcon = () => (
@@ -73,7 +73,7 @@ export default function LoginPage() {
   const router = useRouter();
 
   const [tab, setTab] = useState("login");
-  const [units, setUnits] = useState([]);
+  
 
   // Login
   const [lUser, setLUser] = useState("");
@@ -84,14 +84,9 @@ export default function LoginPage() {
   const [rName, setRName] = useState("");
   const [rEmail, setREail] = useState("");
   const [rPass, setRPass] = useState("");
-  const [rUnit, setRUnit] = useState("");
-  const [rSub, setRSub] = useState("");
+  
 
-  useEffect(() => {
-    api({ action: "listUnits" }).then((res) => {
-      if (res.ok) setUnits(res.data);
-    });
-  }, []);
+  
 
   async function doLogin() {
     if (!lUser || !lPass) {
@@ -129,8 +124,7 @@ export default function LoginPage() {
       name: rName,
       email: rEmail,
       password: rPass,
-      unit_id: rUnit,
-      sub_unit_id: rSub,
+      
     });
     if (res.ok) {
       login(res.token, res.user);
@@ -288,13 +282,7 @@ export default function LoginPage() {
                 </button>
               </div>
             </div>
-            <UnitSelect
-              units={units}
-              unitId={rUnit}
-              subUnitId={rSub}
-              onChangeUnit={setRUnit}
-              onChangeSubUnit={setRSub}
-            />
+            
             <button
               className="btn btn-primary"
               style={{ width: "100%", justifyContent: "center", marginTop: 4 }}
