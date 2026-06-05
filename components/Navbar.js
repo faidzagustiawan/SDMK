@@ -4,10 +4,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import { useApp } from '@/contexts/AppContext';
+import { IconSun, IconMoon } from '@/components/ui/Icons';
 
 export function Navbar({ onHamburger }) {
   const { currentUser, logout } = useAuth();
-  const { toast } = useApp();
+  const { theme, setTheme, toast } = useApp();
   const router = useRouter();
   const [open, setOpen] = useState(false);
 
@@ -27,6 +28,7 @@ export function Navbar({ onHamburger }) {
       {/* BRAND (Kiri) */}
       <div className="brand">
         <div className="brand-logo">S</div>
+
         <div>
           <div className="brand-name">Kalkulator SDMK</div>
           <div className="brand-sub">Analisis Kebutuhan Tenaga</div>
@@ -34,13 +36,24 @@ export function Navbar({ onHamburger }) {
       </div>
 
       {/* RIGHT CONTROLS (Kanan) */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        
+        {/* Theme Switcher */}
+        <button
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="btn-icon"
+          style={{ width: 34, height: 34, borderRadius: '50%', background: 'var(--bg-base)' }}
+          title="Ganti Tema"
+        >
+          {theme === 'dark' ? <IconSun /> : <IconMoon />}
+        </button>
+
         {/* User Dropdown */}
-        <div style={{ position: 'relative' }}>
+        <div className="desktop-only" style={{ position: 'relative' }}>
           <button 
             onClick={() => setOpen(p => !p)}
             className="nav-user-btn"
-            style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '6px 10px', borderRadius: 6, background: 'none', border: 'none', color: '#ccc' }}
+            style={{ display: 'flex', alignItems: 'center', gap: 8, cursor: 'pointer', padding: '6px 10px', borderRadius: 6, background: 'none', border: 'none', color: 'var(--ink)' }}
           >
             <div style={{ width: 30, height: 30, background: 'var(--teal)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 13, fontWeight: 600, color: 'white', flexShrink: 0 }}>
               {initial}

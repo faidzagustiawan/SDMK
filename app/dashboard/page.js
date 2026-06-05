@@ -6,6 +6,7 @@ import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 import { Modal } from '@/components/ui/Modal';
+import { IconSearch, IconPlus, IconEdit, IconDelete } from '@/components/ui/Icons';
 
 export default function DashboardPage() {
   const { showLoader, hideLoader, toast } = useApp();
@@ -40,22 +41,28 @@ export default function DashboardPage() {
   useEffect(() => {
     const q = search.toLowerCase();
 
+    // Terapkan filter privasi: user hanya melihat perhitungannya sendiri, admin melihat semua
+    const visibleData = currentUser?.role === 'admin' 
+      ? allData 
+      : allData.filter(p => p.created_by_id === currentUser?.id);
+
     setFiltered(
-      allData.filter((p) =>
-        (p.judul || '').toLowerCase().includes(q) ||
-        (p.created_by_name || '').toLowerCase().includes(q)
+      visibleData.filter((p) =>
+        String(p.judul || '').toLowerCase().includes(q) ||
+        String(p.created_by_name || '').toLowerCase().includes(q)
       )
     );
-  }, [search, allData]);
+  }, [search, allData, currentUser]);
 
   function fmtDate(s) {
-    return s
-      ? new Date(s).toLocaleDateString('id-ID', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
-        })
-      : '—';
+    if (!s) return '—';
+    const d = new Date(s);
+    if (isNaN(d.valueOf())) return '—';
+    return d.toLocaleDateString('id-ID', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
   }
 
   const isOwner = (p) =>
@@ -94,7 +101,9 @@ export default function DashboardPage() {
 
       <div className="dash-actions">
         <div className="dash-search">
-          <span style={{ color: 'var(--ink-m)', fontSize: 14 }}>🔍</span>
+          <span style={{ color: 'var(--ink-m)', display: 'flex', alignItems: 'center' }}>
+            <IconSearch />
+          </span>
           <input
             type="text"
             placeholder="Cari judul atau pembuat…"
@@ -107,7 +116,7 @@ export default function DashboardPage() {
           className="btn btn-primary"
           onClick={() => router.push('/kalkulator/baru')}
         >
-          ＋ Perhitungan Baru
+          <IconPlus /> Perhitungan Baru
         </button>
       </div>
 
@@ -130,7 +139,7 @@ export default function DashboardPage() {
               className="btn btn-primary"
               onClick={() => router.push('/kalkulator/baru')}
             >
-              ＋ Perhitungan Baru
+              <IconPlus /> Perhitungan Baru
             </button>
           )}
         </div>
@@ -217,7 +226,7 @@ export default function DashboardPage() {
                       className="btn-icon edit"
                       onClick={() => router.push(`/kalkulator/${p.id}`)}
                     >
-                      ✏️
+                      <IconEdit />
                     </button>
 
                     {isOwner(p) && (
@@ -227,7 +236,7 @@ export default function DashboardPage() {
                           setDeleteTarget({ id: p.id, judul: p.judul })
                         }
                       >
-                        🗑
+                        <IconDelete />
                       </button>
                     )}
                   </div>

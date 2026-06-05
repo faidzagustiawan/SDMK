@@ -25,8 +25,8 @@ export function HasilView({ judul, hasil, versiNum, penulis, savedAt, isLatest, 
         {penulis && (
           <div style={{ display:'flex', alignItems:'center', gap:8, marginTop:6, flexWrap:'wrap' }}>
             <span style={{
-              background: isLatest ? 'var(--ink)' : 'var(--cream-d)',
-              color: isLatest ? 'var(--cream)' : 'var(--ink-m)',
+              background: isLatest ? 'var(--teal)' : 'var(--border)',
+              color: isLatest ? 'white' : 'var(--ink-m)',
               borderRadius:99, padding:'2px 10px', fontSize:11, fontWeight:600,
             }}>
               {isLatest ? '● Versi Terbaru' : `Versi ${versiNum}`}
@@ -60,7 +60,9 @@ export function HasilView({ judul, hasil, versiNum, penulis, savedAt, isLatest, 
       <div className="hasil-hero">
         <div className="hasil-eyebrow">Total Kebutuhan Tenaga Kesehatan</div>
         <div className="hasil-num">{h.total_sdmk}</div>
-        <div className="hasil-sub">Orang &nbsp;·&nbsp; dibulatkan ke atas dari {h.total_raw}</div>
+        <div className="hasil-sub">
+          Orang &nbsp;·&nbsp; {h.isRoundUp !== undefined ? `dibulatkan ke ${h.isRoundUp ? 'atas' : 'bawah'} dari` : 'hasil dari'} {h.total_raw}
+        </div>
       </div>
 
       {/* Metrics */}
@@ -129,12 +131,11 @@ export function HasilView({ judul, hasil, versiNum, penulis, savedAt, isLatest, 
         </table>
       </div>
 
-      {/* Formula */}
       <div className="formula-box">
         <div className="formula-title">Ringkasan Rumus</div>
         <div className="formula-line">
-          HKT = {p.hari_kerja||261} − ({p.cuti||0}+{p.libur||0}+{p.pelatihan||0}+{p.absen||0}) = <strong>{h.wkt.hkt} hari</strong><br/>
-          WKT = {h.wkt.hkt} × {p.jam_kerja||8} jam × {p.efektivitas||80}% = <strong>{fmt(h.wkt.wkt_jam)} jam</strong> = <strong>{fmt(h.wkt.wkt_menit)} menit/tahun</strong><br/>
+          HKT = {p.mode === 'custom' ? 'Variabel' : ((p.kerja_perminggu||5) * 52)} − ({p.cuti||0}+{p.libur||0}+{p.pelatihan||0}+{p.absen||0}) = <strong>{h.wkt.hkt} hari</strong><br/>
+          WKT = {h.wkt.hkt} × {p.mode==='custom'? 'Rata-rata' : (p.jam_kerja||8)} jam × 70% = <strong>{fmt(h.wkt.wkt_jam)} jam</strong> = <strong>{fmt(h.wkt.wkt_menit)} menit/tahun</strong><br/>
           SBK = WKT ÷ norma waktu &nbsp;|&nbsp; Kebutuhan = capaian ÷ SBK<br/>
           JKT = Σ kebutuhan seluruh tugas pokok = <strong>{h.jkt}</strong><br/>
           FTP per kegiatan = (waktu × HKT) ÷ WKT × 100 → Total FTP = <strong>{h.ftp_total}%</strong><br/>

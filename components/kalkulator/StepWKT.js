@@ -2,8 +2,10 @@
 
 import { calcWKT } from "@/lib/sdmk-engine";
 import { fmt } from "@/lib/utils";
+import { useApp } from "@/contexts/AppContext";
 
 export function StepWKT({ param, setParam, onNext, onBack }) {
+  const { confirm } = useApp();
   const w = calcWKT(param);
   const totalBulan = (param.custom_schedule || []).reduce(
     (s, p) => s + Number(p.bulan || 0),
@@ -14,62 +16,66 @@ export function StepWKT({ param, setParam, onNext, onBack }) {
     setParam((prev) => ({ ...prev, [key]: val }));
   }
 
-  const handleNext = () => {
-    // 1. Validasi 12 Bulan
-    if (param.mode === "custom" && totalBulan !== 12) {
-      alert(`⚠️ Total durasi harus 12 bulan (saat ini ${totalBulan} bulan)`);
-      return;
-    }
+  const errStandard = param.mode === 'standard' && (!param.jam_kerja || param.jam_kerja <= 0 || param.jam_kerja > 24 || !param.kerja_perminggu || param.kerja_perminggu < 1 || param.kerja_perminggu > 7);
+  const errCustom = param.mode === 'custom' && totalBulan !== 12;
+  const errHkt = w.hkt <= 0;
+  const hasError = errStandard || errCustom || errHkt;
 
-    // 2. Validasi HKT tidak boleh habis
-    if (w.hkt <= 0) {
-      alert(
-        "⚠️ Hari Kerja Tersedia (HKT) tidak boleh nol. Cek kembali input pengurangan hari.",
+  const handleModeSwitch = (newMode) => {
+    if (newMode === param.mode) return;
+    
+    // Periksa apakah ada data di mode saat ini
+    const hasStandardData = param.mode === 'standard' && (param.jam_kerja !== 8 || param.kerja_perminggu !== 5);
+    const hasCustomData = param.mode === 'custom' && (param.custom_schedule || []).length > 0;
+    
+    if (hasStandardData || hasCustomData) {
+      confirm(
+        'Ganti Mode Jadwal?',
+        'Beralih mode akan mereset data jadwal pada mode sebelumnya. Anda yakin ingin mengganti mode?',
+        () => performSwitch(newMode),
+        true
       );
       return;
     }
 
+    performSwitch(newMode);
+  };
+
+  const performSwitch = (newMode) => {
+    if (newMode === 'standard') {
+      setParam(prev => ({ ...prev, mode: 'standard', custom_schedule: [], jam_kerja: 8, kerja_perminggu: 5 }));
+    } else {
+      setParam(prev => ({ ...prev, mode: 'custom', jam_kerja: 0, kerja_perminggu: 0, custom_schedule: [] }));
+    }
+  };
+
+  const handleNext = () => {
+    if (hasError) return;
     onNext();
   };
 
   return (
     <>
-      {/* MODE SELECTION */}
-      <div className="card">
-        <div className="card-title">Pilih Mode Jam Kerja</div>
-
-        <div className="mode-selector">
-          {/* MODE STANDAR */}
-          <label
-            className={`mode-option ${param.mode === "standard" ? "active" : ""}`}
+      {/* TAB MODE SELECTION */}
+      <div className="card" style={{ padding: 0, overflow: 'hidden' }}>
+        <div style={{ display: 'flex', borderBottom: '1px solid var(--border)' }}>
+          <button
+            className="tab-btn"
+            style={{ flex: 1, padding: '16px', background: param.mode === 'standard' ? 'var(--bg-base)' : 'var(--bg-surface)', borderBottom: param.mode === 'standard' ? '3px solid var(--teal)' : '3px solid transparent', fontWeight: param.mode === 'standard' ? 700 : 500, color: param.mode === 'standard' ? 'var(--teal-d)' : 'var(--ink-l)', borderTop: 'none', borderLeft: 'none', borderRight: 'none', cursor: 'pointer', transition: 'all .2s' }}
+            onClick={() => handleModeSwitch('standard')}
           >
-            <input
-              type="radio"
-              name="workMode"
-              checked={param.mode === "standard"}
-              onChange={() => set("mode", "standard")}
-            />
-            <span className="mode-label">Mode Standar</span>
-            <span className="mode-sub">
-              Rutinitas tetap (8 jam × 5 hari atau sejenisnya)
-            </span>
-          </label>
-
-          {/* MODE KUSTOM */}
-          <label
-            className={`mode-option ${param.mode === "custom" ? "active" : ""}`}
+            <div style={{ fontSize: 15, marginBottom: 4 }}>Mode Standar</div>
+            <div style={{ fontSize: 12, color: 'var(--ink-m)', fontWeight: 400 }}>Rutinitas tetap (8 jam × 5 hari)</div>
+          </button>
+          <div style={{ width: 1, background: 'var(--border)' }}></div>
+          <button
+            className="tab-btn"
+            style={{ flex: 1, padding: '16px', background: param.mode === 'custom' ? 'var(--bg-base)' : 'var(--bg-surface)', borderBottom: param.mode === 'custom' ? '3px solid var(--teal)' : '3px solid transparent', fontWeight: param.mode === 'custom' ? 700 : 500, color: param.mode === 'custom' ? 'var(--teal-d)' : 'var(--ink-l)', borderTop: 'none', borderLeft: 'none', borderRight: 'none', cursor: 'pointer', transition: 'all .2s' }}
+            onClick={() => handleModeSwitch('custom')}
           >
-            <input
-              type="radio"
-              name="workMode"
-              checked={param.mode === "custom"}
-              onChange={() => set("mode", "custom")}
-            />
-            <span className="mode-label">Mode Kustom</span>
-            <span className="mode-sub">
-              Jadwal fleksibel, shift, atau perubahan bulanan
-            </span>
-          </label>
+            <div style={{ fontSize: 15, marginBottom: 4 }}>Mode Kustom</div>
+            <div style={{ fontSize: 12, color: 'var(--ink-m)', fontWeight: 400 }}>Jadwal fleksibel & shift bulanan</div>
+          </button>
         </div>
       </div>
 
@@ -78,28 +84,20 @@ export function StepWKT({ param, setParam, onNext, onBack }) {
         <div className="card">
           <div className="card-title">Pengaturan Standar</div>
           <FieldInput
-            field={{
-              key: "jam_kerja",
-              label: "Jam Kerja per Hari",
-              unit: "jam",
-              min: 1,
-              step: 0.5,
-              max: 24,
-            }}
+            field={{ key: "jam_kerja", label: "Jam Kerja per Hari", unit: "jam", min: 1, step: 0.5, max: 24 }}
             value={param.jam_kerja}
             onChange={set}
           />
           <FieldInput
-            field={{
-              key: "kerja_perminggu",
-              label: "Hari Kerja per Minggu",
-              unit: "hari",
-              min: 1,
-              max: 7,
-            }}
+            field={{ key: "kerja_perminggu", label: "Hari Kerja per Minggu", unit: "hari", min: 1, max: 7 }}
             value={param.kerja_perminggu}
             onChange={set}
           />
+          {errStandard && (
+            <div style={{ marginTop: 12, fontSize: 13, color: 'var(--red)', background: 'var(--red-p)', padding: '8px 12px', borderRadius: 'var(--r-xs)', border: '1px solid #fca5a5' }}>
+              ⚠️ Angka tidak masuk akal. Jam kerja harus (1 - 24) dan Hari kerja (1 - 7).
+            </div>
+          )}
         </div>
       ) : (
         <CustomScheduleBuilder
@@ -129,7 +127,12 @@ export function StepWKT({ param, setParam, onNext, onBack }) {
         <button className="btn btn-secondary" onClick={onBack}>
           ← Kembali
         </button>
-        <button className="btn btn-primary" onClick={handleNext}>
+        <button 
+          className="btn btn-primary" 
+          onClick={handleNext}
+          disabled={hasError}
+          style={hasError ? { opacity: 0.5, cursor: 'not-allowed' } : {}}
+        >
           Lanjut →
         </button>
       </div>
@@ -349,8 +352,8 @@ function CustomScheduleBuilder({ param, setParam, totalBulan }) {
       </div>
 
       {totalBulan !== 12 && (
-        <div className="error" style={{ marginTop: "8px" }}>
-          Total bulan harus 12
+        <div style={{ marginTop: 12, fontSize: 13, color: 'var(--red)', background: 'var(--red-p)', padding: '8px 12px', borderRadius: 'var(--r-xs)', border: '1px solid #fca5a5' }}>
+          ⚠️ Total durasi periode harus tepat 12 bulan (saat ini {totalBulan} bulan).
         </div>
       )}
     </div>

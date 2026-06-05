@@ -18,7 +18,7 @@ export function VersiSidebar({ versi, activeId, perhitungan, onSelect }) {
 
   return (
     <aside style={{
-      background: 'white',
+      background: 'var(--bg-surface)',
       border: '0.5px solid var(--border)',
       borderRadius: 'var(--r)',
       boxShadow: 'var(--shadow)',
@@ -30,8 +30,8 @@ export function VersiSidebar({ versi, activeId, perhitungan, onSelect }) {
       {/* Header */}
       <div style={{
         padding: '12px 14px',
-        borderBottom: '0.5px solid var(--border-l)',
-        background: 'var(--cream)',
+        borderBottom: '0.5px solid var(--border)',
+        background: 'var(--bg-base)',
       }}>
         <div style={{ fontSize:10, fontWeight:600, letterSpacing:'.08em', textTransform:'uppercase', color:'var(--ink-m)', marginBottom:4 }}>
           Riwayat Versi
@@ -76,7 +76,7 @@ export function VersiSidebar({ versi, activeId, perhitungan, onSelect }) {
               {/* Badge row */}
               <div style={{ display:'flex', gap:4, alignItems:'center', marginBottom:4 }}>
                 <span style={{
-                  background: isActive ? 'var(--teal)' : 'var(--cream-d)',
+                  background: isActive ? 'var(--teal)' : 'var(--border)',
                   color: isActive ? 'white' : 'var(--ink-m)',
                   borderRadius: 99, padding:'1px 8px',
                   fontSize: 11, fontWeight: 700,
@@ -84,7 +84,7 @@ export function VersiSidebar({ versi, activeId, perhitungan, onSelect }) {
                   v{v.versi_num}
                 </span>
                 {isLatest && (
-                  <span style={{ background:'#1a1916', color:'#f7f4ef', borderRadius:99, padding:'1px 7px', fontSize:10, fontWeight:600 }}>
+                  <span style={{ background:'var(--teal-d)', color:'white', borderRadius:99, padding:'1px 7px', fontSize:10, fontWeight:600 }}>
                     Terbaru
                   </span>
                 )}
@@ -109,7 +109,7 @@ export function VersiSidebar({ versi, activeId, perhitungan, onSelect }) {
               {v.hasil && (
                 <div style={{
                   marginTop: 6, padding:'4px 8px',
-                  background: isActive ? 'rgba(27,107,90,.12)' : 'var(--cream-d)',
+                  background: isActive ? 'var(--teal-p)' : 'var(--border)',
                   borderRadius: 4, fontSize:12,
                   color: isActive ? 'var(--teal-d)' : 'var(--ink-l)',
                   fontWeight: 600,

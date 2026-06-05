@@ -5,6 +5,7 @@ import { useApp } from '@/contexts/AppContext';
 import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 import { Modal } from '@/components/ui/Modal';
+import { IconEdit, IconKey } from '@/components/ui/Icons';
 
 
 export default function ProfilPage() {
@@ -102,10 +103,10 @@ export default function ProfilPage() {
   {/* Tombol Aksi */}
   <div className="profile-actions-vertical">
     <button className="btn btn-primary btn-sm" onClick={() => setShowEdit(true)}>
-      ✏️ Edit Profil
+      <IconEdit /> Edit Profil
     </button>
     <button className="btn btn-ghost btn-sm" onClick={() => setShowPw(true)}>
-      🔑 Ganti Password
+      <IconKey /> Ganti Password
     </button>
   </div>
 </div>

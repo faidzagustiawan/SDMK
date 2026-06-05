@@ -15,14 +15,39 @@ export function AppProvider({ children }) {
   // ── TOAST STATE ──
   const [toasts, setToasts] = useState([]);
 
+  // ── CONFIRM STATE ──
+  const [confirmDialog, setConfirmDialog] = useState({ visible: false, title: '', message: '', onConfirm: null, danger: false });
+
+  const confirm = useCallback((title, message, onConfirm, danger = false) => {
+    setConfirmDialog({ visible: true, title, message, onConfirm, danger });
+  }, []);
+
+  const closeConfirm = useCallback(() => {
+    setConfirmDialog(prev => ({ ...prev, visible: false }));
+  }, []);
+
+  // ── THEME STATE ──
+  const [theme, setThemeState] = useState('light');
+
   // Baca dari localStorage saat mount
   useEffect(() => {
     const t = localStorage.getItem('sdmk_token');
     const u = localStorage.getItem('sdmk_user');
+    const th = localStorage.getItem('sdmk_theme') || 'light';
+    
     if (t && u) {
       setToken(t);
       setCurrentUser(JSON.parse(u));
     }
+    
+    setThemeState(th);
+    document.documentElement.setAttribute('data-theme', th);
+  }, []);
+
+  const setTheme = useCallback((t) => {
+    setThemeState(t);
+    localStorage.setItem('sdmk_theme', t);
+    document.documentElement.setAttribute('data-theme', t);
   }, []);
 
   // ── AUTH HELPERS ──
@@ -68,7 +93,7 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider
-      value={{ token, currentUser, login, logout, updateUser, loader, showLoader, hideLoader, toast, toasts }}
+      value={{ theme, setTheme, token, currentUser, login, logout, updateUser, loader, showLoader, hideLoader, toast, toasts, confirmDialog, confirm, closeConfirm }}
     >
       {children}
     </AppContext.Provider>

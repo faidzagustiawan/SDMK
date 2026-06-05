@@ -148,7 +148,7 @@ export default function LoginPage() {
         <div
           style={{
             display: "flex",
-            background: "var(--cream-d)",
+            background: "var(--bg-base)",
             borderRadius: 6,
             padding: 3,
             marginBottom: "1.5rem",
@@ -167,8 +167,8 @@ export default function LoginPage() {
                 fontSize: 13.5,
                 fontWeight: 500,
                 border: "none",
-                background: tab === t ? "white" : "none",
-                color: tab === t ? "var(--teal)" : "var(--ink-m)",
+                background: tab === t ? "var(--bg-surface)" : "none",
+                color: tab === t ? "var(--teal-l)" : "var(--ink-m)",
                 boxShadow: tab === t ? "var(--shadow)" : "none",
                 transition: "all .15s",
                 fontFamily: "'DM Sans',sans-serif",

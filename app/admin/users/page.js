@@ -1,10 +1,16 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { useApp } from '@/contexts/AppContext';
-import { useRouter } from 'next/navigation';
-import { api } from '@/lib/api';
+import { useState, useEffect, useCallback } from "react";
+import { useAuth } from "@/hooks/useAuth";
+import { useApp } from "@/contexts/AppContext";
+import { useRouter } from "next/navigation";
+import { api } from "@/lib/api";
+import {
+  IconSearch,
+  IconDelete,
+  IconStar,
+  IconUserCheck,
+} from "@/components/ui/Icons";
 
 export default function AdminUsersPage() {
   const { currentUser } = useAuth();
@@ -12,26 +18,26 @@ export default function AdminUsersPage() {
   const router = useRouter();
 
   const [users, setUsers] = useState([]);
-  const [search, setSearch] = useState('');
-  const [confirm, setConfirm] = useState(null); // { user, newRole }
+  const [search, setSearch] = useState("");
+  const [confirm, setConfirm] = useState(null); // { user, action: 'role'|'delete', newRole? }
 
   const load = useCallback(async () => {
-    showLoader('Memuat data pengguna…');
+    showLoader("Memuat data pengguna…");
 
-    const uRes = await api({ action: 'listUsers' });
+    const uRes = await api({ action: "listUsers" });
 
     hideLoader();
 
     if (uRes.ok) {
       setUsers(uRes.data);
     } else {
-      toast(uRes.error, 'error');
+      toast(uRes.error, "error");
     }
   }, [showLoader, hideLoader, toast]);
 
   useEffect(() => {
-    if (currentUser && currentUser.role !== 'admin') {
-      router.replace('/dashboard');
+    if (currentUser && currentUser.role !== "admin") {
+      router.replace("/dashboard");
       return;
     }
 
@@ -40,34 +46,48 @@ export default function AdminUsersPage() {
 
   function fmtDate(s) {
     return s
-      ? new Date(s).toLocaleDateString('id-ID', {
-          day: '2-digit',
-          month: 'short',
-          year: 'numeric',
+      ? new Date(s).toLocaleDateString("id-ID", {
+          day: "2-digit",
+          month: "short",
+          year: "numeric",
         })
-      : '—';
+      : "—";
   }
 
   async function changeRole(target_id, role) {
     setConfirm(null);
 
-    showLoader('Mengubah role…');
-
-    const res = await api({ action: 'setUserRole', target_id, role });
-
+    showLoader("Mengubah role…");
+    const res = await api({ action: "setUserRole", target_id, role });
     hideLoader();
 
     if (res.ok) {
-      toast('Role berhasil diubah.', 'success');
+      toast("Role berhasil diubah.", "success");
       load();
     } else {
-      toast(res.error, 'error');
+      toast(res.error, "error");
     }
   }
 
-  const filtered = users.filter((u) =>
-    (u.username || '').toLowerCase().includes(search.toLowerCase()) ||
-    (u.name || '').toLowerCase().includes(search.toLowerCase())
+  async function deleteUser(target_id) {
+    setConfirm(null);
+
+    showLoader("Menghapus pengguna…");
+    const res = await api({ action: "deleteUser", id: target_id });
+    hideLoader();
+
+    if (res.ok) {
+      toast("Pengguna berhasil dihapus.", "success");
+      load();
+    } else {
+      toast(res.error, "error");
+    }
+  }
+
+  const filtered = users.filter(
+    (u) =>
+      (u.username || "").toLowerCase().includes(search.toLowerCase()) ||
+      (u.name || "").toLowerCase().includes(search.toLowerCase()),
   );
 
   return (
@@ -81,7 +101,7 @@ export default function AdminUsersPage() {
       </div>
 
       {/* Stats */}
-      <div className="metrics-strip" style={{ marginBottom: '1.25rem' }}>
+      <div className="metrics-strip" style={{ marginBottom: "1.25rem" }}>
         <div className="metric-cell">
           <div className="metric-val">{users.length}</div>
           <div className="metric-lbl">Total Pengguna</div>
@@ -89,7 +109,7 @@ export default function AdminUsersPage() {
 
         <div className="metric-cell">
           <div className="metric-val">
-            {users.filter((u) => u.role === 'admin').length}
+            {users.filter((u) => u.role === "admin").length}
           </div>
           <div className="metric-lbl">Administrator</div>
         </div>
@@ -111,7 +131,15 @@ export default function AdminUsersPage() {
 
       <div className="dash-actions">
         <div className="dash-search" style={{ maxWidth: 280 }}>
-          <span style={{ color: 'var(--ink-m)', fontSize: 14 }}>🔍</span>
+          <span
+            style={{
+              color: "var(--ink-m)",
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            <IconSearch />
+          </span>
           <input
             type="text"
             placeholder="Cari username atau nama…"
@@ -127,11 +155,11 @@ export default function AdminUsersPage() {
             <tr>
               <th>Pengguna</th>
               <th>Role</th>
-              <th style={{ textAlign: 'right' }}>Perhitungan</th>
-              <th style={{ textAlign: 'right' }}>Modifikasi</th>
+              <th style={{ textAlign: "right" }}>Perhitungan</th>
+              <th style={{ textAlign: "right" }}>Modifikasi</th>
               <th>Bergabung</th>
               <th>Login Terakhir</th>
-              <th></th>
+              <th style={{ textAlign: "center" }}>Aksi</th>
             </tr>
           </thead>
 
@@ -141,9 +169,9 @@ export default function AdminUsersPage() {
                 <td
                   colSpan={7}
                   style={{
-                    textAlign: 'center',
-                    color: 'var(--ink-m)',
-                    padding: '2rem',
+                    textAlign: "center",
+                    color: "var(--ink-m)",
+                    padding: "2rem",
                   }}
                 >
                   Tidak ada pengguna.
@@ -154,14 +182,14 @@ export default function AdminUsersPage() {
             {filtered.map((u) => (
               <tr key={u.id}>
                 <td>
-                  <div style={{ fontWeight: 500 }}>{u.name || '—'}</div>
+                  <div style={{ fontWeight: 500 }}>{u.name || "—"}</div>
 
-                  <div style={{ fontSize: 12, color: 'var(--ink-m)' }}>
+                  <div style={{ fontSize: 12, color: "var(--ink-m)" }}>
                     @{u.username}
                   </div>
 
                   {u.email && (
-                    <div style={{ fontSize: 11, color: 'var(--ink-m)' }}>
+                    <div style={{ fontSize: 11, color: "var(--ink-m)" }}>
                       {u.email}
                     </div>
                   )}
@@ -170,19 +198,32 @@ export default function AdminUsersPage() {
                 <td>
                   <span
                     className={`badge ${
-                      u.role === 'admin' ? 'badge-admin' : 'badge-user'
+                      u.role === "admin" ? "badge-admin" : "badge-user"
                     }`}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: "4px",
+                    }}
                   >
-                    {u.role === 'admin' ? '⭐ Admin' : '👤 User'}
+                    {u.role === "admin" ? (
+                      <>
+                        <IconStar /> Admin
+                      </>
+                    ) : (
+                      <>
+                        <IconUserCheck /> User
+                      </>
+                    )}
                   </span>
                 </td>
 
                 <td
                   style={{
-                    textAlign: 'right',
+                    textAlign: "right",
                     fontFamily: "'DM Serif Display',serif",
                     fontSize: 18,
-                    color: 'var(--teal)',
+                    color: "var(--teal)",
                   }}
                 >
                   {u.total_perhitungan || 0}
@@ -190,41 +231,71 @@ export default function AdminUsersPage() {
 
                 <td
                   style={{
-                    textAlign: 'right',
+                    textAlign: "right",
                     fontSize: 13,
-                    color: 'var(--ink-m)',
+                    color: "var(--ink-m)",
                   }}
                 >
                   {u.total_modifikasi || 0}
                 </td>
 
-                <td style={{ fontSize: 12, color: 'var(--ink-m)' }}>
+                <td style={{ fontSize: 12, color: "var(--ink-m)" }}>
                   {fmtDate(u.created_at)}
                 </td>
 
-                <td style={{ fontSize: 12, color: 'var(--ink-m)' }}>
+                <td style={{ fontSize: 12, color: "var(--ink-m)" }}>
                   {fmtDate(u.last_login)}
                 </td>
 
-                <td>
-                  {u.id !== currentUser?.id && (
-                    <button
-                      className={`btn btn-sm ${
-                        u.role === 'admin' ? 'btn-danger' : 'btn-ghost'
-                      }`}
-                      style={{ whiteSpace: 'nowrap' }}
-                      onClick={() =>
-                        setConfirm({
-                          user: u,
-                          newRole: u.role === 'admin' ? 'user' : 'admin',
-                        })
-                      }
-                    >
-                      {u.role === 'admin'
-                        ? '↓ Jadikan User'
-                        : '↑ Jadikan Admin'}
-                    </button>
-                  )}
+                <td style={{ textAlign: "center" }}>
+                  <div
+                    style={{
+                      display: "flex",
+                      gap: "6px",
+                      justifyContent: "space-between",
+                      
+              
+                    }}
+                  >
+                    {u.id !== currentUser?.id && (
+                      <button
+                        className={`btn btn-sm flex-1 ${
+                          u.role === "admin"
+                            ? "btn-danger"
+                            : u.role === "user"
+                              ? "btn-primary"
+                              : "btn-ghost"
+                        }`}
+                        style={{ whiteSpace: "nowrap" }}
+                        onClick={() =>
+                          setConfirm({
+                            user: u,
+                            action: "role",
+                            newRole: u.role === "admin" ? "user" : "admin",
+                          })
+                        }
+                      >
+                        {u.role === "admin"
+                          ? "↓ Jadikan User"
+                          : "↑ Jadikan Admin"}
+                      </button>
+                    )}
+
+                    {u.id !== currentUser?.id && (
+                      <button
+                        className="btn-icon"
+                        style={{ color: "var(--red)" }}
+                        onClick={() =>
+                          setConfirm({
+                            user: u,
+                            action: "delete",
+                          })
+                        }
+                      >
+                        <IconDelete />
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
             ))}
@@ -235,28 +306,48 @@ export default function AdminUsersPage() {
       {confirm && (
         <div
           className="modal-overlay"
-          onClick={(e) =>
-            e.target === e.currentTarget && setConfirm(null)
-          }
+          onClick={(e) => e.target === e.currentTarget && setConfirm(null)}
         >
           <div className="modal-box">
-            <div className="modal-title">Ubah Role</div>
-
-            <div className="modal-sub">
-              Ubah role{' '}
-              <strong>
-                {confirm.user.name || confirm.user.username}
-              </strong>{' '}
-              menjadi{' '}
-              <strong>
-                {confirm.newRole === 'admin'
-                  ? 'Administrator'
-                  : 'User'}
-              </strong>
-              ?
+            <div className="modal-title">
+              {confirm.action === "role" ? "Ubah Role" : "Hapus Pengguna"}
             </div>
 
-            <div className="modal-actions">
+            <div className="modal-sub">
+              {confirm.action === "role" ? (
+                <>
+                  Ubah role{" "}
+                  <strong>{confirm.user.name || confirm.user.username}</strong>{" "}
+                  menjadi{" "}
+                  <strong>
+                    {confirm.newRole === "admin" ? "Administrator" : "User"}
+                  </strong>
+                  ?
+                </>
+              ) : (
+                <>
+                  Hapus akun{" "}
+                  <strong>{confirm.user.name || confirm.user.username}</strong>{" "}
+                  secara permanen?
+                  <br />
+                  <br />
+                  <span style={{ color: "var(--amber)", fontSize: "13px" }}>
+                    ⚠️ Catatan: Perhitungan yang pernah dibuat oleh akun ini{" "}
+                    <b>tidak akan terhapus</b> (Riwayat tetap aman).
+                  </span>
+                </>
+              )}
+            </div>
+
+            <div
+              className="modal-actions"
+              style={{
+                display: "flex",
+                gap: "10px",
+                marginTop: "1.5rem",
+                justifyContent: "flex-end",
+              }}
+            >
               <button
                 className="btn btn-secondary btn-sm"
                 onClick={() => setConfirm(null)}
@@ -264,22 +355,27 @@ export default function AdminUsersPage() {
                 Batal
               </button>
 
-              <button
-                className={`btn btn-sm ${
-                  confirm.newRole === 'admin'
-                    ? 'btn-primary'
-                    : 'btn-danger'
-                }`}
-                onClick={() =>
-                  changeRole(confirm.user.id, confirm.newRole)
-                }
-              >
-                Ya, Ubah
-              </button>
+              {confirm.action === "role" ? (
+                <button
+                  className={`btn btn-sm ${
+                    confirm.newRole === "admin" ? "btn-primary" : "btn-danger"
+                  }`}
+                  onClick={() => changeRole(confirm.user.id, confirm.newRole)}
+                >
+                  Ya, Ubah
+                </button>
+              ) : (
+                <button
+                  className="btn btn-sm btn-danger"
+                  onClick={() => deleteUser(confirm.user.id)}
+                >
+                  Ya, Hapus Akun
+                </button>
+              )}
             </div>
           </div>
         </div>
       )}
     </>
   );
-                      }
+}
