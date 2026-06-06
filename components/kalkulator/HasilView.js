@@ -59,18 +59,18 @@ export function HasilView({ judul, hasil, versiNum, penulis, savedAt, isLatest, 
       {/* Hero */}
       <div className="hasil-hero">
         <div className="hasil-eyebrow">Total Kebutuhan Tenaga Kesehatan</div>
-        <div className="hasil-num">{h.total_sdmk}</div>
+        <div className="hasil-num">{fmt(h.total_sdmk)}</div>
         <div className="hasil-sub">
-          Orang &nbsp;·&nbsp; {h.isRoundUp !== undefined ? `dibulatkan ke ${h.isRoundUp ? 'atas' : 'bawah'} dari` : 'hasil dari'} {h.total_raw}
+          {h.isRoundUp !== undefined ? `dibulatkan ke ${h.isRoundUp ? 'atas' : 'bawah'} dari` : 'hasil dari'} {fmt(h.total_raw)}
         </div>
       </div>
 
       {/* Metrics */}
       <div className="metrics-strip" style={{ marginBottom:'1.25rem' }}>
         <div className="metric-cell"><div className="metric-val">{fmt(h.wkt.wkt_menit)}</div><div className="metric-lbl">WKT menit/tahun</div></div>
-        <div className="metric-cell"><div className="metric-val">{h.jkt}</div><div className="metric-lbl">JKT</div></div>
-        <div className="metric-cell"><div className="metric-val">{h.ftp_total}%</div><div className="metric-lbl">FTP Total</div></div>
-        <div className="metric-cell"><div className="metric-val">{h.stp}</div><div className="metric-lbl">STP</div></div>
+        <div className="metric-cell"><div className="metric-val">{fmt(h.jkt)}</div><div className="metric-lbl">JKT</div></div>
+        <div className="metric-cell"><div className="metric-val">{fmt(h.ftp_total)}%</div><div className="metric-lbl">FTP Total</div></div>
+        <div className="metric-cell"><div className="metric-val">{fmt(h.stp)}</div><div className="metric-lbl">STP</div></div>
       </div>
 
       {/* Detail Tugas Pokok */}
@@ -88,13 +88,13 @@ export function HasilView({ judul, hasil, versiNum, penulis, savedAt, isLatest, 
             {h.detail_pokok.map((r, i) => (
               <tr key={i}>
                 <td>{r.kegiatan || '—'}</td>
-                <td className="r">{r.norma_waktu}</td>
-                <td className="r">{(r.capaian_tahun || 0).toLocaleString('id-ID')}</td>
-                <td className="r">{r.sbk.toLocaleString('id-ID')}</td>
-                <td className="r"><span className="tbl-badge">{r.kebutuhan}</span></td>
+                <td className="r">{fmt(r.norma_waktu)}</td>
+                <td className="r">{fmt(r.capaian_tahun || 0)}</td>
+                <td className="r">{fmt(r.sbk)}</td>
+                <td className="r"><span className="tbl-badge">{fmt(r.kebutuhan)}</span></td>
               </tr>
             ))}
-            <tr className="tbl-total"><td colSpan={4}>Jumlah Kebutuhan Tenaga (JKT)</td><td className="r">{h.jkt}</td></tr>
+            <tr className="tbl-total"><td colSpan={4}>Jumlah Kebutuhan Tenaga (JKT)</td><td className="r">{fmt(h.jkt)}</td></tr>
           </tbody>
         </table>
       </div>
@@ -117,15 +117,15 @@ export function HasilView({ judul, hasil, versiNum, penulis, savedAt, isLatest, 
               : h.detail_penunjang.map((r, i) => (
                   <tr key={i}>
                     <td>{r.kegiatan || '—'}</td>
-                    <td className="r">{r.waktu_menit_hari}</td>
-                    <td className="r">{(r.menit_tahun || 0).toLocaleString('id-ID')}</td>
-                    <td className="r">{r.ftp}%</td>
+                    <td className="r">{fmt(r.waktu_menit_hari)}</td>
+                    <td className="r">{fmt(r.menit_tahun || 0)}</td>
+                    <td className="r">{fmt(r.ftp)}%</td>
                   </tr>
                 ))
             }
             <tr className="tbl-total">
-              <td colSpan={3}>Total FTP → STP = 1 ÷ (1 − {(h.ftp_total / 100).toFixed(4)})</td>
-              <td className="r">{h.ftp_total}%</td>
+              <td colSpan={3}>Total FTP → STP = 1 ÷ (1 − {fmt(h.ftp_total / 100)})</td>
+              <td className="r">{fmt(h.ftp_total)}%</td>
             </tr>
           </tbody>
         </table>
@@ -134,13 +134,13 @@ export function HasilView({ judul, hasil, versiNum, penulis, savedAt, isLatest, 
       <div className="formula-box">
         <div className="formula-title">Ringkasan Rumus</div>
         <div className="formula-line">
-          HKT = {p.mode === 'custom' ? 'Variabel' : ((p.kerja_perminggu||5) * 52)} − ({p.cuti||0}+{p.libur||0}+{p.pelatihan||0}+{p.absen||0}) = <strong>{h.wkt.hkt} hari</strong><br/>
-          WKT = {h.wkt.hkt} × {p.mode==='custom'? 'Rata-rata' : (p.jam_kerja||8)} jam × 70% = <strong>{fmt(h.wkt.wkt_jam)} jam</strong> = <strong>{fmt(h.wkt.wkt_menit)} menit/tahun</strong><br/>
+          HKT = {p.mode === 'custom' ? 'Variabel' : ((p.kerja_perminggu||5) * 52)} − ({p.cuti||0}+{p.libur||0}+{p.pelatihan||0}+{p.absen||0}) = <strong>{fmt(h.wkt.hkt)} hari</strong><br/>
+          WKT = {fmt(h.wkt.hkt)} × {p.mode==='custom'? 'Rata-rata' : fmt(p.jam_kerja||8)} jam × 70% = <strong>{fmt(h.wkt.wkt_jam)} jam</strong> = <strong>{fmt(h.wkt.wkt_menit)} menit/tahun</strong><br/>
           SBK = WKT ÷ norma waktu &nbsp;|&nbsp; Kebutuhan = capaian ÷ SBK<br/>
-          JKT = Σ kebutuhan seluruh tugas pokok = <strong>{h.jkt}</strong><br/>
-          FTP per kegiatan = (waktu × HKT) ÷ WKT × 100 → Total FTP = <strong>{h.ftp_total}%</strong><br/>
-          STP = 1 ÷ (1 − {(h.ftp_total/100).toFixed(4)}) = <strong>{h.stp}</strong><br/>
-          <strong>Total SDMK = {h.jkt} × {h.stp} = {h.total_raw} ≈ {h.total_sdmk} orang</strong>
+          JKT = Σ kebutuhan seluruh tugas pokok = <strong>{fmt(h.jkt)}</strong><br/>
+          FTP per kegiatan = (waktu × HKT) ÷ WKT × 100 → Total FTP = <strong>{fmt(h.ftp_total)}%</strong><br/>
+          STP = 1 ÷ (1 − {fmt(h.ftp_total/100)}) = <strong>{fmt(h.stp)}</strong><br/>
+          <strong>Total SDMK = {fmt(h.jkt)} × {fmt(h.stp)} = {fmt(h.total_raw)} ≈ {fmt(h.total_sdmk)} orang</strong>
         </div>
       </div>
 

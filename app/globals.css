@@ -270,6 +270,10 @@ input:focus,textarea:focus,select:focus { outline:none;border-color:var(--teal);
 .formula-title { font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:var(--ink-m);margin-bottom:10px; }
 .formula-line { line-height:2.2;color:var(--ink-l); }
 
+/* ── NUMBER FORMATTING ── */
+.num-dot { color: var(--ink-m); margin: 0 1px; font-weight: inherit; opacity: 0.7; }
+.num-comma { color: var(--teal); font-weight: 800; font-size: 1.1em; margin: 0 1px; }
+
 /* ── PROFILE EXTENDED ── */
 .profile-avatar-big { width:80px;height:80px;background:linear-gradient(135deg, var(--teal-l), var(--teal-d));border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;font-size:36px;color:white;margin:0 auto 12px;box-shadow:var(--shadow-glow); }
 .profile-stat { text-align:center; }
